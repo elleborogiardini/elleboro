@@ -28,6 +28,10 @@ Pannelli e foto a 12px. Il bottone principale è una pillola. Niente bordo insie
 
 Apertura del sito: salita breve, opacità piena da subito. Campi: linea verde che si disegna al focus in 220ms. Nel gestionale i passaggi restano corti. `prefers-reduced-motion` toglie lo spostamento.
 
+## Tavole botaniche
+
+Incisioni di elleboro in `public/botanica`, solo canale alfa. Si usano con `Botanica` da `src/components/botanica.tsx`, colorate dai token: oro sul verde dell'hero, `--herb` sulla carta. Una tavola per schermata, mai sotto il testo di lettura, sempre decorative. Sul sito pubblico, non nel gestionale.
+
 ## Logo
 
 Unico punto: `src/components/brand/Logo.tsx`, file `public/brand/logo.jpg`. Per sostituirlo, cambia quel file. In hero il file si vede intero, largo, su una lastra con un filo d’oro. La crema resta nel file, non diventa il fondo della pagina.

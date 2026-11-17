@@ -41,6 +41,23 @@ export function SiteMotion({ children }: { children: ReactNode }) {
           );
         });
 
+        gsap.utils.toArray<HTMLElement>(".hero-botanica, .bio-botanica", root.current).forEach((plant) => {
+          gsap.fromTo(
+            plant,
+            { yPercent: 0 },
+            {
+              yPercent: -10,
+              ease: "none",
+              scrollTrigger: {
+                trigger: plant.parentElement,
+                start: "top bottom",
+                end: "bottom top",
+                scrub: 0.8,
+              },
+            },
+          );
+        });
+
         gsap.utils.toArray<HTMLElement>("[data-rise]", root.current).forEach((block) => {
           gsap.from(block, {
             y: 24,
@@ -75,5 +92,9 @@ export function SiteMotion({ children }: { children: ReactNode }) {
     { scope: root },
   );
 
-  return <div ref={root}>{children}</div>;
+  return (
+    <div ref={root} className="site">
+      {children}
+    </div>
+  );
 }

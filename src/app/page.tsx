@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { mailHref, phoneHref } from "@/domain/card";
 import { portraitSrc, publicBlocks, publicWorkSrc, sharePreview } from "@/domain/public-page";
+import { Botanica, Filo } from "@/components/botanica";
 import { Logo } from "@/components/logo";
 import { Rise } from "@/components/rise";
 import { SiteMotion } from "@/components/site-motion";
@@ -44,6 +45,7 @@ export default async function HomePage() {
     <SiteMotion>
     <main className="overflow-x-clip">
       <section className="hero">
+        <Botanica plant="ramo" className="hero-botanica" />
         <div className="hero-frame">
           <Rise className="hero-mark">
             <Logo />
@@ -77,36 +79,52 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="mx-auto grid max-w-6xl gap-8 px-5 py-20 md:grid-cols-[0.8fr_1.2fr] md:items-center">
-        <div className="portrait-frame" data-portrait>
-          <Image
-            src={portraitSrc(site.portraitPath, process.env.NEXT_PUBLIC_SUPABASE_URL)}
-            alt={site.portraitAlt}
-            width={900}
-            height={1100}
-            className="portrait-photo h-auto w-full object-cover"
-          />
+      <section className="bio mx-auto grid max-w-6xl gap-10 px-5 py-24 md:grid-cols-[0.8fr_1.2fr] md:items-center md:gap-16 md:py-32">
+        <div className="bio-figure">
+          <Botanica plant="mazzo" className="bio-botanica" />
+          <div className="portrait-frame" data-portrait>
+            <Image
+              src={portraitSrc(site.portraitPath, process.env.NEXT_PUBLIC_SUPABASE_URL)}
+              alt={site.portraitAlt}
+              width={900}
+              height={1100}
+              className="portrait-photo h-auto w-full object-cover"
+            />
+          </div>
         </div>
         <div className="max-w-[62ch]" data-rise>
-          <h2 className="text-4xl">{site.ownerName}</h2>
-          <p className="mt-4 text-lg">{site.bio}</p>
+          <p className="eyebrow">Chi sono</p>
+          <h2 className="section-title">{site.ownerName}</h2>
+          <p className="mt-5 text-lg md:text-xl">{site.bio}</p>
         </div>
       </section>
 
-      <section className="bg-[var(--surface)]">
-        <div className="mx-auto flex max-w-3xl flex-col gap-12 px-5 py-20">
-          {site.services.map((service, index) => (
-            <article key={index} data-rise>
-              <h2 className={index === 0 ? "text-5xl" : "text-3xl"}>{service.title}</h2>
-              <p className="mt-3 max-w-[42ch] text-lg">{service.body}</p>
-            </article>
-          ))}
+      <section className="services">
+        <div className="services-frame mx-auto grid max-w-6xl gap-12 px-5 py-24 md:grid-cols-[0.8fr_1.2fr] md:gap-16 md:py-32">
+          <div className="services-aside">
+            <p className="eyebrow">Servizi</p>
+            <Botanica plant="fiore" className="services-botanica" />
+          </div>
+          <div className="flex flex-col">
+            {site.services.map((service, index) => (
+              <article key={index} className="service" data-rise>
+                <span className="service-index">{String(index + 1).padStart(2, "0")}</span>
+                <div>
+                  <h2 className={index === 0 ? "service-title service-title-lead" : "service-title"}>
+                    {service.title}
+                  </h2>
+                  <p className="mt-3 max-w-[42ch] text-lg">{service.body}</p>
+                </div>
+              </article>
+            ))}
+          </div>
         </div>
       </section>
 
       {blocks.works ? (
-        <section className="mx-auto max-w-6xl px-5 py-20">
-          <h2 className="text-4xl">Lavori</h2>
+        <section className="mx-auto max-w-6xl px-5 py-24">
+          <p className="eyebrow">Portfolio</p>
+          <h2 className="section-title">Lavori</h2>
           <div className="mt-8 grid gap-4 md:grid-cols-2">
             {works.map((work) => (
               <figure key={work.id}>
@@ -128,8 +146,12 @@ export default async function HomePage() {
         </section>
       ) : null}
 
-      <section className="mx-auto max-w-6xl px-5 py-20" data-rise>
-        <h2 className="text-4xl">Contatti</h2>
+      <Filo />
+
+      <section className="contact mx-auto max-w-6xl px-5 py-24" data-rise>
+        <Botanica plant="mazzo" className="contact-botanica" />
+        <p className="eyebrow">Contatti</p>
+        <h2 className="section-title">Parliamo del tuo giardino</h2>
         <div className="mt-6 grid gap-2 text-xl">
           {call ? <a href={call}>{site.phone}</a> : null}
           {site.area ? <p>{site.area}</p> : null}
@@ -146,11 +168,13 @@ export default async function HomePage() {
       </section>
 
       {blocks.quotes ? (
-        <section className="mx-auto max-w-3xl px-5 py-20" data-rise>
-          <h2 className="text-4xl">Testimonianze</h2>
-          <div className="mt-8 grid gap-10">
+        <>
+        <Filo />
+        <section className="mx-auto max-w-3xl px-5 py-24" data-rise>
+          <p className="eyebrow">Testimonianze</p>
+          <div className="mt-8 grid gap-14">
             {quotes.map((quote, index) => (
-              <blockquote key={index} className="text-2xl leading-snug">
+              <blockquote key={index} className="quote text-2xl leading-snug md:text-3xl">
                 <p className="line-clamp-3">“{quote.quote}”</p>
                 <footer className="mt-3 text-base text-[var(--muted)]">
                   {quote.author}
@@ -161,11 +185,15 @@ export default async function HomePage() {
             ))}
           </div>
         </section>
+        </>
       ) : null}
 
-      <footer className="site-entry">
-        <Link href="/login">Accesso</Link>
-      </footer>
+      <div className="site-foot">
+        <Botanica plant="bordura" className="foot-botanica" />
+        <footer className="site-entry">
+          <Link href="/login">Accesso</Link>
+        </footer>
+      </div>
 
       {call ? (
         <a className="phone-dock md:hidden" href={call}>

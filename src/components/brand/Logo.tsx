@@ -7,8 +7,8 @@ export function Logo({ className = "" }: { className?: string }) {
         <Image
           src="/brand/logo.jpg"
           alt="Elleboro Giardini"
-          width={1024}
-          height={558}
+          width={1280}
+          height={720}
           priority
           sizes="(min-width: 900px) 36rem, 100vw"
           className="logo-image"

@@ -14,8 +14,10 @@
   --on-forest: oklch(0.96 0.015 145);
   --pill: oklch(0.975 0.008 150);
   --pill-ink: oklch(0.32 0.06 150);
+  --herb: oklch(0.32 0.06 150);
   --radius: 12px;
   --font: var(--font-bricolage), "Avenir Next", sans-serif;
+  --grain: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.65'/%3E%3C/svg%3E");
   color-scheme: light;
 }
 
@@ -31,6 +33,7 @@
     --line: oklch(0.36 0.02 150);
     --on-forest: oklch(0.97 0.01 145);
     --danger: oklch(0.66 0.13 25);
+    --herb: oklch(0.72 0.06 145);
     color-scheme: dark;
   }
 }
@@ -369,7 +372,7 @@ html:has(.app-shell) body {
   pointer-events: none;
   mix-blend-mode: multiply;
   opacity: 0.18;
-  background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.65'/%3E%3C/svg%3E");
+  background-image: var(--grain);
   background-size: 160px 160px;
 }
 
@@ -482,8 +485,272 @@ html:has(.app-shell) body {
   .logo-stage { margin-inline: auto 0; }
 }
 
+.site {
+  position: relative;
+  isolation: isolate;
+}
+
+.site::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  pointer-events: none;
+  background-image: var(--grain);
+  background-size: 180px 180px;
+  mix-blend-mode: multiply;
+  opacity: 0.06;
+}
+
+.botanica {
+  display: block;
+  pointer-events: none;
+  background: currentColor;
+  -webkit-mask: var(--plant) center / contain no-repeat;
+  mask: var(--plant) center / contain no-repeat;
+}
+
+.botanica-ramo { --plant: url("/botanica/elleboro-ramo.webp"); aspect-ratio: 1100 / 1452; }
+.botanica-mazzo { --plant: url("/botanica/elleboro-mazzo.webp"); aspect-ratio: 1100 / 1187; }
+.botanica-bordura { --plant: url("/botanica/elleboro-bordura.webp"); aspect-ratio: 1800 / 600; }
+.botanica-fiore { --plant: url("/botanica/elleboro-fiore.webp"); aspect-ratio: 640 / 885; }
+
+.hero {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  background:
+    radial-gradient(120% 80% at 85% 100%, oklch(0.36 0.065 150) 0%, transparent 60%),
+    radial-gradient(90% 70% at 0% 0%, var(--forest-deep) 0%, transparent 70%),
+    var(--forest);
+}
+
+.hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: var(--grain);
+  background-size: 160px 160px;
+  opacity: 0.08;
+}
+
+.hero-frame {
+  position: relative;
+  z-index: 1;
+}
+
+.hero-botanica {
+  position: absolute;
+  z-index: 0;
+  --plant-opacity: 0.14;
+  right: -52%;
+  bottom: -6%;
+  height: 80%;
+  color: var(--gold);
+  opacity: var(--plant-opacity);
+  animation: botanica-grow 2.4s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
+}
+
+@keyframes botanica-grow {
+  from { clip-path: inset(100% 0 0 0); opacity: 0; }
+  to { clip-path: inset(0 0 0 0); opacity: var(--plant-opacity); }
+}
+
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0 0 1rem;
+  color: var(--leaf);
+  font-size: 0.78rem;
+  font-weight: 560;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.eyebrow::before {
+  content: "";
+  width: 2rem;
+  height: 1px;
+  background: var(--gold);
+}
+
+.section-title {
+  margin: 0;
+  font-size: clamp(2.4rem, 5vw, 3.75rem);
+  font-weight: 600;
+  line-height: 1;
+}
+
+.bio-figure {
+  position: relative;
+  isolation: isolate;
+}
+
+.bio-figure .portrait-frame {
+  position: relative;
+  box-shadow: 0 1px 0 var(--line), 0 30px 60px -40px oklch(0.27 0.035 150 / 0.45);
+}
+
+.bio-botanica {
+  position: absolute;
+  z-index: -1;
+  left: -30%;
+  bottom: -26%;
+  width: 92%;
+  color: var(--herb);
+  opacity: 0.2;
+}
+
+.services {
+  position: relative;
+  background: var(--surface);
+  border-block: 1px solid var(--line);
+}
+
+.services-aside {
+  position: relative;
+}
+
+.services-botanica {
+  display: none;
+  color: var(--herb);
+  opacity: 0.3;
+}
+
+.service {
+  display: grid;
+  grid-template-columns: 3rem minmax(0, 1fr);
+  gap: 1rem;
+  padding: 2.25rem 0;
+  border-top: 1px solid var(--line);
+}
+
+.service:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.service-index {
+  padding-top: 0.55rem;
+  color: var(--leaf);
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.12em;
+}
+
+.service-title {
+  margin: 0;
+  font-size: clamp(1.75rem, 3vw, 2.25rem);
+  font-weight: 600;
+  line-height: 1.05;
+}
+
+.service-title-lead { font-size: clamp(2.4rem, 5vw, 3.5rem); }
+
+.filo {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 0 1.25rem;
+}
+
+.filo-line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold) 50%, transparent);
+  opacity: 0.7;
+}
+
+.filo-fiore {
+  width: 4.5rem;
+  color: var(--gold);
+}
+
+.quote {
+  margin: 0;
+  padding-left: 1.5rem;
+  border-left: 1px solid var(--gold);
+}
+
+.contact {
+  position: relative;
+  isolation: isolate;
+}
+
+.contact-botanica {
+  display: none;
+  position: absolute;
+  z-index: -1;
+  right: 0;
+  top: 50%;
+  width: min(34rem, 42%);
+  translate: 0 -50%;
+  scale: -1 1;
+  color: var(--herb);
+  opacity: 0.22;
+}
+
+@media (min-width: 900px) {
+  .contact-botanica { display: block; }
+}
+
+.site-foot {
+  position: relative;
+  margin-top: 4rem;
+  overflow: hidden;
+}
+
+.foot-botanica {
+  width: min(110rem, 140%);
+  margin: 0 auto -1px;
+  margin-left: 50%;
+  translate: -50% 0;
+  color: var(--herb);
+  opacity: 0.2;
+}
+
+.site-foot .site-entry {
+  position: relative;
+  border-top: 1px solid var(--line);
+}
+
+@media (min-width: 900px) {
+  .hero-botanica {
+    --plant-opacity: 0.22;
+    right: -6%;
+    bottom: -12%;
+    height: 108%;
+  }
+
+  .services-aside {
+    position: sticky;
+    top: 4rem;
+    align-self: start;
+  }
+
+  .services-botanica {
+    display: block;
+    width: min(100%, 20rem);
+    margin-top: 2.5rem;
+  }
+
+  .service { grid-template-columns: 4.5rem minmax(0, 1fr); }
+
+  .foot-botanica { width: min(110rem, 100%); }
+}
+
+@media (prefers-color-scheme: dark) {
+  .site::before { mix-blend-mode: screen; opacity: 0.035; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
+  .hero-botanica { animation: none; }
   .field::after { transition: none; }
   .btn:active, .hero-phone:active, .phone-dock:active, .choice button:active, .choice label:active { transform: none; }
   .action-notice { animation: none; }
