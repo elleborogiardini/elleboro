@@ -40,6 +40,7 @@ export function shellChrome(path: string): { title: string; back: string | null 
   if (path.startsWith("/app/agenda")) title = "Agenda";
   else if (path.startsWith("/app/richieste")) title = "Richieste";
   else if (path.startsWith("/app/sito")) title = "Sito";
+  else if (path.startsWith("/app/accesso")) title = "Accesso";
   else if (path.includes("/preferenze")) title = "Preferenze";
   else if (path.includes("/note")) title = "Note";
   else if (path.startsWith("/app/clienti")) title = "Fascicolo";

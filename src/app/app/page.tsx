@@ -14,6 +14,7 @@ export default async function ClientsPage({
   const [clients, role] = await Promise.all([listClients(q), getRole()]);
   return (
     <div className="mx-auto grid max-w-3xl gap-6">
+      {role === "owner" ? <Link href="/app/accesso">Mail per il recupero</Link> : null}
       <form>
         <label className="field">
           <span>Cerca per nome, telefono o località</span>

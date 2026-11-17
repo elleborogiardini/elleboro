@@ -2,7 +2,7 @@
 
 import { createHash, randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { movedAppointment, placeForAppointment, romeWindow } from "@/domain/calendar";
 import { workVisibility } from "@/domain/public-page";
@@ -30,6 +30,9 @@ import {
   photoError,
 } from "@/domain/forms";
 import { stripPrivateExif } from "@/domain/photo";
+import { mailHref } from "@/domain/card";
+import { recoveryLetter, recoveryRecipient, recoveryRedirect } from "@/domain/recovery";
+import { deliverRecoveryMail } from "@/lib/mail";
 import { safeReturn } from "@/domain/shell";
 import { recentInquiryCount, reviewInquiry, throttleMark, type Need, type PlaceKind } from "@/domain/inquiry";
 import { createAdmin } from "@/lib/supabase/admin";
@@ -648,6 +651,88 @@ export async function uploadPortraitAction(formData: FormData) {
   revalidatePath("/");
   revalidatePath("/app/sito");
   }
+
+export async function saveRecoveryEmailAction(formData: FormData) {
+  const supabase = await createClient();
+  if (!supabase) fail("/app/accesso", "Collega il progetto prima di salvare.");
+  const { data: auth } = await supabase.auth.getUser();
+  if (!auth.user) fail("/app/accesso", "Entra prima di salvare.");
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", auth.user.id)
+    .maybeSingle();
+  if (profile?.role !== "owner") fail("/app/accesso", "Solo il proprietario salva questa mail.");
+  const email = parseSiteEmail(text(formData, "email"));
+  if (!email.ok) fail("/app/accesso", email.error);
+  const value = email.value?.toLowerCase() ?? null;
+  if (!value) {
+    const { error } = await supabase.from("owner_recovery").delete().eq("profile_id", auth.user.id);
+    if (error) fail("/app/accesso", "Non sono riuscito a salvare la mail.");
+  } else {
+    const { error } = await supabase
+      .from("owner_recovery")
+      .upsert({ profile_id: auth.user.id, email: value }, { onConflict: "profile_id" });
+    if (error) fail("/app/accesso", "Non sono riuscito a salvare la mail.");
+  }
+  redirect("/app/accesso?salvato=1");
+}
+
+export async function requestRecoveryAction(formData: FormData) {
+  const requested = text(formData, "email").toLowerCase();
+  if (!mailHref(requested)) fail("/login/recupero", "Scrivi una mail.");
+  const admin = createAdmin();
+  if (!admin) fail("/login/recupero", "Il recupero non è ancora collegato.");
+  const headerList = await headers();
+  const origin =
+    headerList.get("origin") ??
+    `${headerList.get("x-forwarded-proto") ?? "http"}://${headerList.get("host") ?? ""}`;
+  const redirectTo = recoveryRedirect(origin);
+  const { data: rows } = await admin.from("owner_recovery").select("profile_id, email");
+  for (const row of rows ?? []) {
+    if (!redirectTo) break;
+    const { data: profile } = await admin
+      .from("profiles")
+      .select("role")
+      .eq("id", row.profile_id)
+      .maybeSingle();
+    const to = recoveryRecipient({
+      role: profile?.role ?? "",
+      saved: row.email,
+      requested,
+    });
+    if (!to) continue;
+    const { data: user } = await admin.auth.admin.getUserById(row.profile_id);
+    const login = user.user?.email;
+    if (!login) continue;
+    const link = await admin.auth.admin.generateLink({
+      type: "recovery",
+      email: login,
+      options: { redirectTo },
+    });
+    const actionLink = link.data?.properties?.action_link;
+    if (!actionLink) continue;
+    const letter = recoveryLetter({ to, link: actionLink });
+    try {
+      await deliverRecoveryMail(letter);
+    } catch {
+      console.error("recupero non inviato");
+    }
+    break;
+  }
+  redirect("/login/recupero?inviato=1");
+}
+
+export async function signInAction(formData: FormData) {
+  const supabase = await createClient();
+  if (!supabase) fail("/login", "Il gestionale non è ancora collegato.");
+  const { error } = await supabase.auth.signInWithPassword({
+    email: text(formData, "email"),
+    password: String(formData.get("password") ?? ""),
+  });
+  if (error) fail("/login", "Email o password non valide.");
+  redirect("/app");
+}
 
 export async function signOutAction() {
   const supabase = await createClient();

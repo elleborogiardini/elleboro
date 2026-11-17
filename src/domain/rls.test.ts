@@ -43,6 +43,7 @@ async function database() {
     "",
   );
   await db.exec(migration);
+  await db.exec(readFileSync("supabase/migrations/20261117190000_owner_recovery.sql", "utf8"));
   await db.exec(`
     insert into public.allowed_emails (email, role) values
       ('owner@example.com', 'owner'),
@@ -172,6 +173,45 @@ describe("sicurezza nel database", () => {
       "select label from public.preferences",
     );
     expect(owner.rows).toEqual([{ label: "rose gialle" }]);
+    await db.close();
+  });
+
+  it("solo il proprietario legge e cambia la mail di recupero", async () => {
+    const db = await database();
+    await db.exec(
+      `insert into public.owner_recovery (profile_id, email) values ('${ownerId}', 'personale@example.com')`,
+    );
+    await expect(asRole(db, "anon", null, "select email from public.owner_recovery")).rejects.toThrow(
+      /permission denied/i,
+    );
+    const hidden = await asRole<{ email: string }>(
+      db,
+      "authenticated",
+      technicianId,
+      "select email from public.owner_recovery",
+    );
+    expect(hidden.rows).toEqual([]);
+    await expect(
+      asRole(
+        db,
+        "authenticated",
+        technicianId,
+        `insert into public.owner_recovery (profile_id, email) values ('${technicianId}', 'tech@example.com')`,
+      ),
+    ).rejects.toThrow(/row-level security/i);
+    await asRole(
+      db,
+      "authenticated",
+      ownerId,
+      `update public.owner_recovery set email = 'altra@example.com' where profile_id = '${ownerId}'`,
+    );
+    const saved = await asRole<{ email: string }>(
+      db,
+      "authenticated",
+      ownerId,
+      "select email from public.owner_recovery",
+    );
+    expect(saved.rows).toEqual([{ email: "altra@example.com" }]);
     await db.close();
   });
 });

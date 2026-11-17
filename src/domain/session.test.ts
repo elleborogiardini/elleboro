@@ -21,4 +21,14 @@ describe("sessione", () => {
     expect(after).toContain("copySetCookies(");
     expect(after).not.toContain("return NextResponse.redirect");
   });
+
+  it("l'accesso scrive la sessione sul server", () => {
+    const page = readFileSync("src/app/login/page.tsx", "utf8");
+    expect(page).not.toContain("signInWithPassword");
+    expect(page).toContain("signInAction");
+    const actions = readFileSync("src/server/actions.ts", "utf8");
+    const signIn = actions.slice(actions.indexOf("export async function signInAction"));
+    expect(signIn).toContain("signInWithPassword");
+    expect(signIn).toContain('redirect("/app")');
+  });
 });

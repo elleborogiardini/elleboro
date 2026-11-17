@@ -31,6 +31,7 @@ describe("app installata", () => {
     });
     expect(shellChrome("/app/richieste/abc")).toEqual({ title: "Richieste", back: "/app/richieste" });
     expect(shellChrome("/app/sito").back).toBeNull();
+    expect(shellChrome("/app/accesso")).toEqual({ title: "Accesso", back: "/app" });
   });
 
   it("il tecnico non vede i collegamenti a preferenze e note", () => {

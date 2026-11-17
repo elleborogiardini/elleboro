@@ -10,7 +10,7 @@ Il visitatore vede il sito pubblicato. Non vede clienti, luoghi, interventi, pro
 
 Il tecnico vede anagrafica, luoghi, foto, interventi, richieste e testi. Non vede preferenze, specifiche, note e agenda.
 
-Il proprietario vede tutto il gestionale.
+Il proprietario vede tutto il gestionale. Solo lui salva la mail personale per il recupero password, e il link arriva lì senza dire l'email di accesso.
 
 La chiave di servizio sta solo sul server. Serve a ricevere le richieste pubbliche, togliere i file e comporre il feed. Non entra in un componente del browser.
 

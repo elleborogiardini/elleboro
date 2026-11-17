@@ -128,6 +128,19 @@ export async function getPublicQuotes(): Promise<PublicTestimonial[]> {
   });
 }
 
+export async function getRecoveryEmail(): Promise<string | null> {
+  const supabase = await createClient();
+  if (!supabase) return null;
+  const { data: user } = await supabase.auth.getUser();
+  if (!user.user) return null;
+  const { data } = await supabase
+    .from("owner_recovery")
+    .select("email")
+    .eq("profile_id", user.user.id)
+    .maybeSingle();
+  return data?.email ?? null;
+}
+
 export async function listClients(query: string): Promise<ClientRow[]> {
   const supabase = await createClient();
   if (!supabase) return [];

@@ -28,6 +28,10 @@ const nextConfig: NextConfig = {
   async headers() {
     const img = supabase ? ` ${supabase.https}` : "";
     const connect = supabase ? ` ${supabase.https} ${supabase.wss}` : "";
+    const script =
+      process.env.NODE_ENV === "development"
+        ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'"
+        : "script-src 'self' 'unsafe-inline'";
     return [
       {
         source: "/:path*",
@@ -37,7 +41,7 @@ const nextConfig: NextConfig = {
           { key: "X-Frame-Options", value: "DENY" },
           {
             key: "Content-Security-Policy",
-            value: `default-src 'self'; img-src 'self' data: blob${img}; connect-src 'self'${connect}; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; frame-ancestors 'none'`,
+            value: `default-src 'self'; img-src 'self' data: blob${img}; connect-src 'self'${connect}; style-src 'self' 'unsafe-inline'; ${script}; frame-ancestors 'none'`,
           },
         ],
       },

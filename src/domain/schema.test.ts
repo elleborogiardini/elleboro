@@ -35,6 +35,13 @@ describe("schema e permessi", () => {
     expect(sql).toContain("grant insert on public.inquiry_throttle to service_role");
   });
 
+  it("la mail di recupero resta al proprietario", () => {
+    expect(sql).toContain("create table public.owner_recovery");
+    expect(sql).toContain("owner_recovery_own");
+    expect(sql).toContain("profile_id = auth.uid() and public.is_owner()");
+    expect(sql).toContain("revoke all on public.owner_recovery from anon");
+  });
+
   it("le viste pubbliche non selezionano un id cliente", () => {
     const portfolio = sql.split("public.public_portfolio")[1]?.split(";")[0] ?? "";
     const quotes = sql.split("public.public_testimonials")[1]?.split(";")[0] ?? "";
