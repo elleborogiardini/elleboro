@@ -40,6 +40,7 @@ describe("pagina pubblica", () => {
     expect(calling.description).toContain("Hasith Conthrath");
     expect(calling.description).toContain("333 000 1111");
     expect(calling.description).not.toMatch(/via|indirizzo/i);
+    expect(quiet.openGraph.images[0].url).toBe("/brand/share.jpg");
   });
 
   it("l'editor tiene il testo anche se il sito non è pubblicato", () => {

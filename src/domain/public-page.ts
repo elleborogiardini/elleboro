@@ -37,7 +37,16 @@ export function sharePreview(site: { ownerName: string; heroTitle: string; phone
   const title = site.heroTitle.trim();
   const named = `${site.ownerName.trim()}, ${title}`;
   const phone = site.phone && showPhone(site.phone) ? site.phone.trim() : null;
-  return { title, description: phone ? `${named}. ${phone}` : `${named}.` };
+  const description = phone ? `${named}. ${phone}` : `${named}.`;
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      images: [{ url: "/brand/share.jpg", width: 1200, height: 630, alt: title }],
+    },
+  };
 }
 
 function publicFile(path: string | null | undefined): path is string {

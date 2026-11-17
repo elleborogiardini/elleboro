@@ -1,4 +1,4 @@
-const CACHE = "elleboro-static-v3";
+const CACHE = "elleboro-static-v4";
 const ASSETS = ["/icons/icon-192.png", "/icons/icon-512.png"];
 
 self.addEventListener("install", (event) => {

@@ -25,6 +25,11 @@ export const metadata: Metadata = {
     icon: "/icons/tab.png",
     apple: "/icons/apple-touch-icon.png",
   },
+  openGraph: {
+    title: "Elleboro Giardini",
+    description: "Elleboro Giardini.",
+    images: [{ url: "/brand/share.jpg", width: 1200, height: 630, alt: "Elleboro Giardini" }],
+  },
 };
 
 const colors = launchColors();
