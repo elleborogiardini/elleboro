@@ -100,7 +100,7 @@ export default async function HomePage() {
       </section>
 
       <section className="services">
-        <div className="services-frame mx-auto grid max-w-6xl gap-12 px-5 py-24 md:grid-cols-[0.8fr_1.2fr] md:gap-16 md:py-32">
+        <div className="services-frame mx-auto grid max-w-6xl gap-12 px-5 pt-24 pb-14 md:grid-cols-[0.8fr_1.2fr] md:gap-16 md:pt-32 md:pb-16">
           <div className="services-aside">
             <p className="eyebrow">Servizi</p>
             <Botanica plant="fiore" className="services-botanica" />
@@ -122,7 +122,7 @@ export default async function HomePage() {
       </section>
 
       {blocks.works ? (
-        <section className="mx-auto max-w-6xl px-5 py-24">
+        <section className="mx-auto max-w-6xl px-5 pt-24 pb-14">
           <p className="eyebrow">Portfolio</p>
           <h2 className="section-title">Lavori</h2>
           <div className="mt-8 grid gap-4 md:grid-cols-2">
@@ -148,7 +148,7 @@ export default async function HomePage() {
 
       <Filo />
 
-      <section className="contact mx-auto max-w-6xl px-5 py-24" data-rise>
+      <section className="contact mx-auto max-w-6xl px-5 pt-10 pb-24" data-rise>
         <Botanica plant="mazzo" className="contact-botanica" />
         <p className="eyebrow">Contatti</p>
         <h2 className="section-title">Parliamo del tuo giardino</h2>

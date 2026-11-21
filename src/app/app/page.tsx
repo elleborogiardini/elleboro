@@ -15,7 +15,7 @@ export default async function ClientsPage({
   return (
     <div className="mx-auto grid max-w-3xl gap-6">
       {role === "owner" ? <Link href="/app/accesso">Mail per il recupero</Link> : null}
-      <form>
+      <form className="client-search">
         <label className="field">
           <span>Cerca per nome, telefono o località</span>
           <input name="q" defaultValue={q} />
