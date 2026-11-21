@@ -29,6 +29,7 @@ export function Shell({
 }) {
   const path = usePathname();
   const [online, setOnline] = useState(true);
+  const [pressed, setPressed] = useState<string | null>(null);
   useEffect(() => {
     const sync = () => setOnline(navigator.onLine);
     sync();
@@ -64,7 +65,13 @@ export function Shell({
           const current = tabCurrent(tab.href, path);
           const Icon = icons[tab.label];
           return (
-            <Link key={tab.href} href={tab.href} aria-current={current ? "page" : undefined}>
+            <Link
+              key={tab.href}
+              href={tab.href}
+              aria-current={current ? "page" : undefined}
+              className={pressed === tab.href && !current ? "is-pressed" : undefined}
+              onPointerDown={() => setPressed(tab.href)}
+            >
               <Icon size={22} weight="regular" />
               {tab.label}
             </Link>

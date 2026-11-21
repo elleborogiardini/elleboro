@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
@@ -23,6 +24,19 @@ describe("cornice dell'app", () => {
     expect(html).not.toContain("Richiedi un sopralluogo");
     expect(html).not.toContain("Salva il contatto");
     expect(html).not.toContain("botanica");
+  });
+
+  it("la barra resta segnata nel punto premuto", () => {
+    const source = readFileSync("src/components/shell.tsx", "utf8");
+    expect(source).toContain("onPointerDown");
+    expect(source).toContain("is-pressed");
+    const css = readFileSync("src/app/globals.css", "utf8");
+    const press = css.slice(
+      css.indexOf(".app-tabbar a:active"),
+      css.indexOf("}", css.indexOf(".app-tabbar a:active")),
+    );
+    expect(press).toContain("background: var(--forest)");
+    expect(press).toContain("color: var(--on-forest)");
   });
 
   it("il proprietario vede una sola tavola nel titolo", () => {

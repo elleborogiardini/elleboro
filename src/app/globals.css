@@ -513,6 +513,13 @@ html:has(.app-shell) body {
 
 .app-tabbar a[aria-current="page"] { color: var(--forest); }
 
+.app-tabbar a:active,
+.app-tabbar a.is-pressed {
+  background: var(--forest);
+  color: var(--on-forest);
+  transform: scale(0.98);
+}
+
 .phone-dock {
   position: fixed;
   left: 1rem;
