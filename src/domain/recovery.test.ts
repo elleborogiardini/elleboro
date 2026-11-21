@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { createServer } from "node:net";
 import { describe, expect, it } from "vitest";
-import { recoveryLetter, recoveryRecipient, recoveryRedirect } from "@/domain/recovery";
+import { recoveryHash, recoveryHandoff, recoveryLetter, recoveryRecipient, recoveryRedirect } from "@/domain/recovery";
 import { mailpitMessage, sendPlainMail } from "@/lib/mail";
 
 describe("recupero password", () => {
@@ -41,6 +41,19 @@ describe("recupero password", () => {
     expect(mailpitMessage(letter).To).toEqual([{ Email: "personale@example.com" }]);
     expect(letter.text).toContain("https://example.com/verify");
     expect(`${letter.subject}\n${letter.text}`).not.toContain("owner@example.com");
+  });
+
+  it("il frammento del recupero apre la pagina della nuova password", () => {
+    const hash = "#access_token=a&refresh_token=b&type=recovery";
+    expect(recoveryHash(hash)).toEqual({ kind: "ready", accessToken: "a", refreshToken: "b" });
+    expect(recoveryHandoff("/", hash)).toBe(`/login/nuova${hash}`);
+    expect(recoveryHandoff("/login/nuova", hash)).toBeNull();
+    expect(recoveryHash("#error=access_denied&error_code=otp_expired").kind).toBe("expired");
+    const form = readFileSync("src/app/login/nuova/form.tsx", "utf8");
+    expect(form).toContain("recoveryHash");
+    expect(form).toContain('flowType: "implicit"');
+    expect(form).toContain("Questo link non è più valido.");
+    expect(readFileSync("src/app/layout.tsx", "utf8")).toContain("RecoveryHandoff");
   });
 
   it("il link di ritorno resta sulla pagina della nuova password", () => {

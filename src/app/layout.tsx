@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { RecoveryHandoff } from "@/components/recovery-handoff";
 import { launchColors } from "@/domain/pwa";
 import { Bricolage_Grotesque } from "next/font/google";
 import "./globals.css";
@@ -47,7 +48,10 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="it" className={`${bricolage.variable} h-full`}>
-      <body className="min-h-dvh antialiased">{children}</body>
+      <body className="min-h-dvh antialiased">
+        <RecoveryHandoff />
+        {children}
+      </body>
     </html>
   );
 }

@@ -24,6 +24,29 @@ export function recoveryLetter(input: { to: string; link: string }): {
   };
 }
 
+export function recoveryHash(hash: string):
+  | { kind: "ready"; accessToken: string; refreshToken: string }
+  | { kind: "expired" }
+  | { kind: "missing" } {
+  const params = new URLSearchParams(hash.startsWith("#") ? hash.slice(1) : hash);
+  if (params.get("error_code") === "otp_expired" || params.get("error") === "access_denied") {
+    return { kind: "expired" };
+  }
+  const accessToken = params.get("access_token");
+  const refreshToken = params.get("refresh_token");
+  if (params.get("type") === "recovery" && accessToken && refreshToken) {
+    return { kind: "ready", accessToken, refreshToken };
+  }
+  return { kind: "missing" };
+}
+
+export function recoveryHandoff(pathname: string, hash: string): string | null {
+  if (recoveryHash(hash).kind !== "ready") return null;
+  if (pathname === "/login/nuova") return null;
+  const raw = hash.startsWith("#") ? hash : `#${hash}`;
+  return `/login/nuova${raw}`;
+}
+
 export function recoveryRedirect(origin: string): string | null {
   let url: URL;
   try {

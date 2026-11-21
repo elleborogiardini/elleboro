@@ -1,9 +1,23 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { ActionNotice } from "@/components/action-notice";
 import { fieldInvalid } from "@/domain/forms";
-import { createBrowser } from "@/lib/supabase/browser";
+import { recoveryHash } from "@/domain/recovery";
+
+let recoveryClient: SupabaseClient | null = null;
+
+function recoveryBrowser() {
+  if (recoveryClient) return recoveryClient;
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !key) return null;
+  recoveryClient = createClient(url, key, {
+    auth: { flowType: "implicit", detectSessionInUrl: true, persistSession: true },
+  });
+  return recoveryClient;
+}
 
 export function NewPasswordForm() {
   const [error, setError] = useState("");
@@ -11,16 +25,26 @@ export function NewPasswordForm() {
   const [done, setDone] = useState(false);
 
   useEffect(() => {
-    const hash = new URLSearchParams(window.location.hash.slice(1));
-    const accessToken = hash.get("access_token");
-    const refreshToken = hash.get("refresh_token");
-    if (!accessToken || !refreshToken) return;
-    const supabase = createBrowser();
-    void supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken }).then(
-      ({ error: sessionError }) => {
-        if (!sessionError) setReady(true);
-      },
-    );
+    const arrival = recoveryHash(window.location.hash);
+    if (arrival.kind === "expired") {
+      setError("Questo link non è più valido.");
+      return;
+    }
+    if (arrival.kind !== "ready") return;
+    const supabase = recoveryBrowser();
+    if (!supabase) {
+      setError("Non riesco ad aprire questo link.");
+      return;
+    }
+    void supabase.auth
+      .setSession({ access_token: arrival.accessToken, refresh_token: arrival.refreshToken })
+      .then(({ error: sessionError }) => {
+        if (sessionError) {
+          setError("Non riesco ad aprire questo link.");
+          return;
+        }
+        setReady(true);
+      });
   }, []);
 
   async function onSubmit(formData: FormData) {
@@ -35,7 +59,12 @@ export function NewPasswordForm() {
       setError("Le due password non coincidono.");
       return;
     }
-    const { error: updateError } = await createBrowser().auth.updateUser({ password });
+    const supabase = recoveryBrowser();
+    if (!supabase) {
+      setError("Non riesco ad aprire questo link.");
+      return;
+    }
+    const { error: updateError } = await supabase.auth.updateUser({ password });
     if (updateError) {
       setError("Non sono riuscito a salvare la password.");
       return;
@@ -51,7 +80,7 @@ export function NewPasswordForm() {
     );
   }
   if (!ready) {
-    return <p className="mt-6">Apri il link che ti è arrivato per mail.</p>;
+    return <p className="mt-6">{error || "Apri il link che ti è arrivato per mail."}</p>;
   }
   return (
     <form action={onSubmit} className={`mt-8 grid gap-4 ${fieldInvalid(error)}`.trim()}>
