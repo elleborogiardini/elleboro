@@ -19,6 +19,8 @@ import {
   parseHeroLead,
   parsePreference,
   parsePublishAlt,
+  parseWorkAlt,
+  listedServices,
   parseRequiredLine,
   parseServices,
   parseSiteEmail,
@@ -487,13 +489,6 @@ export async function saveSiteAction(formData: FormData) {
   if (!email.ok) bail(formData, email.error);
   const portraitAlt = parsePublishAlt(text(formData, "portrait_alt"));
   if (!portraitAlt.ok) bail(formData, portraitAlt.error);
-  const services = parseServices(
-    [0, 1, 2].map((index) => ({
-      title: text(formData, `service_title_${index}`),
-      body: text(formData, `service_body_${index}`),
-    })),
-  );
-  if (!services.ok) bail(formData, services.error);
   const bio = parseRequiredLine(text(formData, "bio"), "Scrivi chi sei.");
   if (!bio.ok) bail(formData, bio.error);
   const { error } = await supabase
@@ -507,7 +502,6 @@ export async function saveSiteAction(formData: FormData) {
       contact_email: email.value,
       service_area: text(formData, "service_area") || null,
       portrait_alt: portraitAlt.value,
-      services: services.value,
       published: formData.get("published") === "on",
       updated_at: new Date().toISOString(),
     })
@@ -515,7 +509,28 @@ export async function saveSiteAction(formData: FormData) {
   if (error) bail(formData, "Non sono riuscito a salvare il sito.");
   revalidatePath("/");
   revalidatePath("/app/sito");
+}
+
+export async function saveServicesAction(formData: FormData) {
+  const supabase = await createClient();
+  if (!supabase) bail(formData, "Collega il progetto prima di salvare.");
+  const fields: Record<string, string | undefined> = {};
+  for (const [key, value] of formData.entries()) {
+    if (typeof value === "string" && /^service_(title|body)_\d+$/.test(key)) fields[key] = value;
   }
+  const services = parseServices(listedServices(fields));
+  if (!services.ok) bail(formData, services.error);
+  const { error } = await supabase
+    .from("site_content")
+    .update({
+      services: services.value,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", 1);
+  if (error) bail(formData, "Non sono riuscito a salvare i servizi.");
+  revalidatePath("/");
+  revalidatePath("/app/sito");
+}
 
 export async function saveTestimonialAction(formData: FormData) {
   const supabase = await createClient();
@@ -738,6 +753,40 @@ export async function signOutAction() {
   const supabase = await createClient();
   if (supabase) await supabase.auth.signOut();
   redirect("/login");
+}
+
+export async function uploadWorkAction(formData: FormData) {
+  const supabase = await createClient();
+  if (!supabase) bail(formData, "Collega il progetto prima di salvare.");
+  const alt = parseWorkAlt(text(formData, "alt"));
+  if (!alt.ok) bail(formData, alt.error);
+  const file = formData.get("work");
+  if (!(file instanceof File) || file.size === 0) bail(formData, "Scegli una foto.");
+  const jpeg = await stripPrivateExif(Buffer.from(await file.arrayBuffer()));
+  const publicPath = `${randomUUID()}.jpg`;
+  const { error: uploadError } = await supabase.storage
+    .from("portfolio")
+    .upload(publicPath, jpeg, { contentType: "image/jpeg" });
+  if (uploadError) bail(formData, "Non sono riuscito a caricare il lavoro.");
+  const work = publishedWork({
+    path: publicPath,
+    alt: alt.value,
+    caption: text(formData, "caption") || null,
+  });
+  const visible = formData.get("visible");
+  const { error: itemError } = await supabase.from("portfolio_items").insert({
+    public_path: work.path,
+    caption: work.caption,
+    alt: work.alt,
+    published: workVisibility(typeof visible === "string" ? visible : null),
+  });
+  const leftover = unpublishedPublicFile(itemError, publicPath);
+  if (leftover) {
+    await supabase.storage.from("portfolio").remove([leftover]);
+    bail(formData, "Non sono riuscito a pubblicare il lavoro.");
+  }
+  revalidatePath("/");
+  revalidatePath("/app/sito");
 }
 
 export async function setWorkVisibilityAction(formData: FormData) {

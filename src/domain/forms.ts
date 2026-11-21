@@ -221,6 +221,14 @@ export function parsePublishAlt(alt: string): Parsed<string> {
   return read(z.string().trim().min(1), alt, "Scrivi il testo alternativo.");
 }
 
+export function parseWorkAlt(alt: string): Parsed<string> {
+  return read(z.string().trim().min(1), alt, "Scrivi cosa si vede.");
+}
+
+export function workField(message: string | undefined): "work_alt" | null {
+  return actionNotice(message) === "Scrivi cosa si vede." ? "work_alt" : null;
+}
+
 export function parseAppointmentStatus(
   status: string,
 ): Parsed<z.output<typeof appointmentStatusSchema>> {
@@ -315,10 +323,23 @@ const serviceStepSchema = z.object({
   body: z.string().trim().min(1),
 });
 
+export function listedServices(
+  fields: Record<string, string | undefined>,
+): { title: string; body: string }[] {
+  const steps: { title: string; body: string }[] = [];
+  for (let index = 0; index < 48; index += 1) {
+    const title = fields[`service_title_${index}`];
+    const body = fields[`service_body_${index}`];
+    if (title === undefined && body === undefined) break;
+    steps.push({ title: title ?? "", body: body ?? "" });
+  }
+  return steps;
+}
+
 export function parseServices(
   steps: { title: string; body: string }[],
 ): Parsed<{ title: string; body: string }[]> {
-  if (steps.length !== 3) return { ok: false, error: "Ogni passo ha un titolo e una frase." };
+  if (steps.length < 1) return { ok: false, error: "Ogni passo ha un titolo e una frase." };
   const value: { title: string; body: string }[] = [];
   for (const step of steps) {
     const parsed = serviceStepSchema.safeParse(step);

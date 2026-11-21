@@ -262,10 +262,10 @@ describe("feed calendario", () => {
     expect(agendaFocusDay("2026-12", undefined, now, ["2026-12-04T08:00:00.000Z"])).toBe("2026-12-04");
     expect(agendaFocusDay("2026-12", undefined, now, [])).toBe("2026-12-01");
     expect(agendaClock("2026-11-02T08:00:00.000Z")).toBe("09:00");
-    const page = readFileSync("src/app/app/agenda/page.tsx", "utf8");
-    expect(page).toContain("agendaMonth");
-    expect(page).toContain("agenda-week");
-    expect(page).not.toContain("compactMonth");
+    const boardSource = readFileSync("src/components/agenda-board.tsx", "utf8");
+    expect(boardSource).toContain("agendaMonth");
+    expect(boardSource).toContain("agenda-week");
+    expect(boardSource).not.toContain("compactMonth");
   });
 
   it("spostare un appuntamento cambia l'orario dello stesso evento", () => {

@@ -1,7 +1,7 @@
 import { clientsMatching } from "@/domain/dossier";
 import { rowOrFail, rowsOrFail } from "@/domain/read";
 import { draftSite, type PublicSite, type Service } from "@/domain/draft";
-import { siteForEditor, siteForVisitor, type EditorSite } from "@/domain/public-page";
+import { publishedServices, siteForEditor, siteForVisitor, type EditorSite } from "@/domain/public-page";
 import { toPublicTestimonial, type PublicTestimonial } from "@/domain/testimonials";
 import { createClient } from "@/lib/supabase/server";
 
@@ -18,12 +18,15 @@ export type ClientRow = {
 
 function asServices(value: unknown): Service[] {
   if (!Array.isArray(value)) return draftSite.services;
-  return value.flatMap((item) => {
-    if (!item || typeof item !== "object") return [];
-    const row = item as { title?: string; body?: string };
-    if (!row.title) return [];
-    return [{ title: row.title, body: row.body ?? "" }];
-  });
+  return publishedServices(
+    value.flatMap((item) => {
+      if (!item || typeof item !== "object") return [];
+      const row = item as { title?: string; body?: string };
+      if (!row.title) return [];
+      return [{ title: row.title, body: row.body ?? "" }];
+    }),
+    draftSite.services,
+  );
 }
 
 export async function getRole(): Promise<Role | null> {

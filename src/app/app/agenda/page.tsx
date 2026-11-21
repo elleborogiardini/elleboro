@@ -1,22 +1,14 @@
 import { headers } from "next/headers";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { agendaClock, agendaDayKey, agendaDayLabel, agendaFocusDay, agendaLocalInput, agendaMonth, agendaPlaceLabel, agendaSpan } from "@/domain/calendar";
+import { agendaLocalInput, agendaPlaceLabel, agendaSpan } from "@/domain/calendar";
 import { ActionNotice } from "@/components/action-notice";
+import { AgendaBoard } from "@/components/agenda-board";
 import { CopyFeedLink } from "@/components/copy-feed-link";
 import { agendaField, fieldInvalid } from "@/domain/forms";
 import { getRole, listClients } from "@/lib/data";
 import { listAppointments, listPlaceOptions } from "@/lib/records";
 import { createAppointmentAction, moveAppointmentAction, setAppointmentStatusAction } from "@/server/actions";
-
-function agendaHref(current: { errore?: string; sposta?: string }, mese: string, giorno: string) {
-  const params = new URLSearchParams();
-  if (current.errore) params.set("errore", current.errore);
-  if (current.sposta) params.set("sposta", current.sposta);
-  params.set("mese", mese);
-  params.set("giorno", giorno);
-  return `/app/agenda?${params.toString()}`;
-}
 
 export default async function AgendaPage({
   searchParams,
@@ -37,73 +29,21 @@ export default async function AgendaPage({
   const proto = headerList.get("x-forwarded-proto") ?? "http";
   const feedUrl = token && host ? `${proto}://${host}/feed/${token}` : null;
   const now = new Date();
-  const marks = appointments.map((item) => item.starts_at);
-  const board = agendaMonth(marks, now, mese);
-  const selected = agendaFocusDay(board.key, giorno, now, marks);
-  const dayItems = appointments.filter((item) => agendaDayKey(item.starts_at) === selected);
-  const query = { errore, sposta };
 
   return (
     <div className="mx-auto grid max-w-3xl gap-8">
       {agendaField(errore) ? null : <ActionNotice message={errore} />}
-      <section className="agenda-board owner-section" aria-label="Calendario del mese">
-        <div className="agenda-month">
-          <Link href={agendaHref(query, board.prev, agendaFocusDay(board.prev, undefined, now, marks))} aria-label="Mese precedente">
-            <span aria-hidden="true" style={{ display: "block", width: "0.55rem", height: "0.55rem", borderTop: "2px solid currentColor", borderRight: "2px solid currentColor", transform: "rotate(-135deg)" }} />
-          </Link>
-          <p className="capitalize">{board.label}</p>
-          <Link href={agendaHref(query, board.next, agendaFocusDay(board.next, undefined, now, marks))} aria-label="Mese successivo">
-            <span aria-hidden="true" style={{ display: "block", width: "0.55rem", height: "0.55rem", borderTop: "2px solid currentColor", borderRight: "2px solid currentColor", transform: "rotate(45deg)" }} />
-          </Link>
-        </div>
-        <div className="agenda-weekdays" aria-hidden="true">
-          {board.weekdays.map((name) => (
-            <span key={name}>{name}</span>
-          ))}
-        </div>
-        <div className="agenda-weeks">
-          {board.weeks.map((week) => (
-            <div className="agenda-week" key={week[0].key}>
-              {week.map((cell) =>
-                cell.inMonth ? (
-                  <Link
-                    key={cell.key}
-                    className={`agenda-day${cell.key === selected ? " is-selected" : ""}${cell.today ? " is-today" : ""}`}
-                    href={agendaHref(query, board.key, cell.key)}
-                    aria-current={cell.key === selected ? "date" : undefined}
-                  >
-                    {cell.day}
-                    <span className={cell.count > 0 ? "agenda-mark" : "agenda-mark is-empty"} />
-                    {cell.count > 0 ? (
-                      <span className="sr-only">{cell.count === 1 ? "1 appuntamento" : `${cell.count} appuntamenti`}</span>
-                    ) : null}
-                  </Link>
-                ) : (
-                  <span key={cell.key} className="agenda-day is-outside">
-                    {cell.day}
-                  </span>
-                ),
-              )}
-            </div>
-          ))}
-        </div>
-        <h2 className="agenda-day-title capitalize">{agendaDayLabel(selected)}</h2>
-        {dayItems.length === 0 ? (
-          <p>Nessun appuntamento in questo giorno.</p>
-        ) : (
-          <ol className="agenda-times">
-            {dayItems.map((item) => (
-              <li key={item.id}>
-                <time dateTime={item.starts_at}>{agendaClock(item.starts_at)}</time>
-                <div>
-                  <strong>{item.title}</strong>
-                  <span>{agendaPlaceLabel(item.clients?.full_name ?? "", item.places?.label ?? "")}</span>
-                </div>
-              </li>
-            ))}
-          </ol>
-        )}
-      </section>
+      <AgendaBoard
+        now={now.toISOString()}
+        month={mese}
+        day={giorno}
+        entries={appointments.map((item) => ({
+          id: item.id,
+          startsAt: item.starts_at,
+          title: item.title,
+          place: agendaPlaceLabel(item.clients?.full_name ?? "", item.places?.label ?? ""),
+        }))}
+      />
       <section className="owner-section is-grove">
       <h2 className="text-2xl">I prossimi appuntamenti</h2>
       {appointments.length === 0 ? (

@@ -17,16 +17,19 @@ export function siteForVisitor(
   return row;
 }
 
+export function publishedServices(
+  steps: { title: string; body: string }[],
+  fallback: { title: string; body: string }[],
+): { title: string; body: string }[] {
+  return steps.length ? steps : fallback;
+}
+
 export function editorServices(
   steps: { title: string; body: string }[],
   fallback: { title: string; body: string }[],
 ): { title: string; body: string }[] {
-  const next = steps.slice(0, 3).map((step) => ({ title: step.title, body: step.body }));
-  while (next.length < 3) {
-    const spare = fallback[next.length];
-    next.push(spare ? { title: spare.title, body: spare.body } : { title: "", body: "" });
-  }
-  return next;
+  const source = steps.length ? steps : fallback;
+  return source.map((step) => ({ title: step.title, body: step.body }));
 }
 
 export function workVisibility(checked: string | null): boolean {

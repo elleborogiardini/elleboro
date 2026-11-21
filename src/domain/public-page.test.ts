@@ -1,7 +1,8 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { draftSite } from "@/domain/draft";
-import { portraitSrc, publicBlocks, publicWorkSrc, sharePreview, siteForEditor, siteForVisitor, editorServices, workVisibility } from "@/domain/public-page";
+import { parseWorkAlt } from "@/domain/forms";
+import { portraitSrc, publicBlocks, publicWorkSrc, sharePreview, siteForEditor, siteForVisitor, editorServices, publishedServices, workVisibility } from "@/domain/public-page";
 
 describe("pagina pubblica", () => {
   it("senza telefono, lavori e testimonianze quelle sezioni non ci sono", () => {
@@ -93,32 +94,35 @@ describe("pagina pubblica", () => {
     expect(page.match(/<main className="overflow-x-clip">/g)).toHaveLength(2);
   });
 
-  it("l'editor tiene sempre i tre passi, anche se ne manca uno", () => {
+  it("senza passi salvati il sito mostra i tre di partenza", () => {
+    expect(publishedServices([], draftSite.services)).toEqual(draftSite.services);
     expect(
-      editorServices([{ title: "Ascolto", body: "Uno" }], draftSite.services),
-    ).toEqual([
-      { title: "Ascolto", body: "Uno" },
-      draftSite.services[1],
-      draftSite.services[2],
-    ]);
+      publishedServices([{ title: "Siepe", body: "Taglio." }], draftSite.services),
+    ).toEqual([{ title: "Siepe", body: "Taglio." }]);
+    const data = readFileSync("src/lib/data.ts", "utf8");
+    const reader = data.slice(
+      data.indexOf("function asServices"),
+      data.indexOf("export async function getRole"),
+    );
+    expect(reader).toContain("publishedServices");
+  });
+
+  it("senza passi salvati l'editor parte dai tre, e tiene quelli aggiunti", () => {
     expect(editorServices([], draftSite.services)).toEqual(draftSite.services);
     expect(
-      editorServices(
-        [
-          { title: "Uno", body: "A" },
-          { title: "Due", body: "B" },
-          { title: "Tre", body: "C" },
-          { title: "Quattro", body: "D" },
-        ],
-        draftSite.services,
-      ),
-    ).toEqual([
+      editorServices([{ title: "Siepe", body: "Taglio." }], draftSite.services),
+    ).toEqual([{ title: "Siepe", body: "Taglio." }]);
+    const added = [
       { title: "Uno", body: "A" },
       { title: "Due", body: "B" },
       { title: "Tre", body: "C" },
-    ]);
+      { title: "Quattro", body: "D" },
+    ];
+    expect(editorServices(added, draftSite.services)).toEqual(added);
     const page = readFileSync("src/app/app/sito/page.tsx", "utf8");
     expect(page).toContain("editorServices");
+    expect(page).toContain(">Servizi<");
+    expect(page).not.toContain("services.slice(0, 3)");
     expect(page).not.toContain("site.services.length ? site.services");
   });
 
@@ -178,9 +182,13 @@ describe("pagina pubblica", () => {
   });
 
   it("due passi con lo stesso titolo restano due campi", () => {
-    const page = readFileSync("src/app/app/sito/page.tsx", "utf8");
-    const steps = page.slice(page.indexOf("services.slice(0, 3)"), page.indexOf("service_body_"));
-    expect(steps).toContain("key={index}");
+    const steps = readFileSync("src/components/service-steps.tsx", "utf8");
+    expect(steps).toContain("key={row.key}");
+    expect(steps).toContain("service_title_");
+    expect(steps).toContain("Aggiungi un servizio");
+    expect(steps).toContain("Togli questo servizio");
+    expect(steps).toContain('className="btn ghost service-remove"');
+    expect(steps).not.toContain("Togli questo passo");
     expect(steps).not.toContain("key={service.title}");
   });
 
@@ -198,5 +206,43 @@ describe("pagina pubblica", () => {
     expect(body).toContain('.from("portfolio_items")');
     expect(body).toContain("published:");
     expect(body).toContain('revalidatePath("/")');
+  });
+
+  it("il proprietario carica una foto di un lavoro finito", () => {
+    expect(parseWorkAlt("  ").ok).toBe(false);
+    const named = parseWorkAlt(" Siepe di bosso ");
+    expect(named.ok && named.value).toBe("Siepe di bosso");
+    const page = readFileSync("src/app/app/sito/page.tsx", "utf8");
+    const works = page.slice(page.indexOf(">Lavori<"), page.indexOf(">Testimonianze<"));
+    expect(works).toContain("uploadWorkAction");
+    expect(works).toContain('name="work"');
+    expect(works).toContain('name="alt"');
+    expect(works).toContain("Pubblica lavoro");
+    expect(works).toContain("publicWorkSrc");
+    const source = readFileSync("src/server/actions.ts", "utf8");
+    const body = source.slice(
+      source.indexOf("export async function uploadWorkAction"),
+      source.indexOf("export async function setWorkVisibilityAction"),
+    );
+    expect(body.indexOf("parseWorkAlt(")).toBeGreaterThan(-1);
+    expect(body.indexOf("stripPrivateExif")).toBeGreaterThan(body.indexOf("parseWorkAlt("));
+    expect(body).toContain("publishedWork");
+    expect(body).toContain("unpublishedPublicFile");
+    expect(body).toContain('.from("portfolio")');
+    expect(body).toContain('.from("portfolio_items").insert');
+    expect(body).not.toContain("client_id");
+    expect(body).toContain('revalidatePath("/")');
+  });
+
+  it("i lavori restano una sezione staccata dalle altre", () => {
+    const page = readFileSync("src/app/app/sito/page.tsx", "utf8");
+    const heading = page.indexOf(">Lavori<");
+    const works = page.slice(page.lastIndexOf("<section", heading), page.indexOf(">Testimonianze<"));
+    expect(works).toContain('className="owner-section is-works"');
+    expect(page.match(/is-works/g)).toHaveLength(1);
+    const css = readFileSync("src/app/globals.css", "utf8");
+    const rule = css.slice(css.indexOf(".owner-section.is-works"), css.indexOf("}", css.indexOf(".owner-section.is-works")));
+    expect(rule).toContain("margin-block:");
+    expect(rule).toContain("inset 0 0 0 1px var(--line)");
   });
 });

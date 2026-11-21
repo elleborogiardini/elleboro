@@ -27,6 +27,7 @@ import {
   quoteField,
   parsePublishAlt,
   parseRequiredLine,
+  listedServices,
   parseServices,
   parseSiteEmail,
   parseSitePhone,
@@ -180,7 +181,7 @@ describe("biglietto da visita", () => {
     expect(save).not.toContain('portrait_alt: text(formData, "portrait_alt")');
   });
 
-  it("i tre passi restano tutti, con titolo e frase", () => {
+  it("ogni passo ha titolo e frase, e possono essere più di tre", () => {
     const blank = parseServices([
       { title: "Ascolto", body: "Capisco il luogo." },
       { title: "Progetto", body: "   " },
@@ -188,15 +189,19 @@ describe("biglietto da visita", () => {
     ]);
     expect(blank.ok).toBe(false);
     if (!blank.ok) expect(blank.error).toBe("Ogni passo ha un titolo e una frase.");
-    const dropped = parseServices([
+    expect(parseServices([]).ok).toBe(false);
+    const kept = parseServices([
       { title: "Ascolto", body: "Capisco il luogo." },
       { title: "Cura", body: "Torno nelle stagioni." },
     ]);
-    expect(dropped.ok).toBe(false);
+    expect(kept.ok).toBe(true);
+    if (!kept.ok) return;
+    expect(kept.value).toHaveLength(2);
     const saved = parseServices([
       { title: " Ascolto ", body: " Capisco il luogo. " },
       { title: "Progetto", body: "Disegno un verde." },
       { title: "Cura", body: "Torno nelle stagioni." },
+      { title: "Siepe", body: "Taglio." },
     ]);
     expect(saved.ok).toBe(true);
     if (!saved.ok) return;
@@ -204,12 +209,33 @@ describe("biglietto da visita", () => {
       { title: "Ascolto", body: "Capisco il luogo." },
       { title: "Progetto", body: "Disegno un verde." },
       { title: "Cura", body: "Torno nelle stagioni." },
+      { title: "Siepe", body: "Taglio." },
+    ]);
+    expect(
+      listedServices({
+        service_title_0: "Ascolto",
+        service_body_0: "Capisco il luogo.",
+        service_title_1: "Cura",
+        service_body_1: "Torno nelle stagioni.",
+        service_title_3: "Siepe",
+      }),
+    ).toEqual([
+      { title: "Ascolto", body: "Capisco il luogo." },
+      { title: "Cura", body: "Torno nelle stagioni." },
     ]);
     const source = readFileSync("src/server/actions.ts", "utf8");
-    const save = source.slice(source.indexOf("export async function saveSiteAction"));
-    const siteSave = save.slice(0, save.indexOf("export async function saveTestimonialAction"));
-    expect(siteSave).toContain("parseServices");
-    expect(siteSave).not.toContain(".filter((item) => item.title)");
+    const servicesSave = source.slice(
+      source.indexOf("export async function saveServicesAction"),
+      source.indexOf("export async function saveTestimonialAction"),
+    );
+    expect(servicesSave).toContain("listedServices");
+    expect(servicesSave).toContain("parseServices");
+    expect(servicesSave).not.toContain(".filter((item) => item.title)");
+    const siteSave = source.slice(
+      source.indexOf("export async function saveSiteAction"),
+      source.indexOf("export async function saveServicesAction"),
+    );
+    expect(siteSave).not.toContain("service_title_");
   });
 
   it("la frase del biglietto sta in venti parole", () => {
@@ -257,9 +283,10 @@ describe("biglietto da visita", () => {
     const page = readFileSync("src/app/app/sito/page.tsx", "utf8");
     const form = page.slice(page.indexOf("saveSiteAction"), page.indexOf("Salva testi"));
     const bio = form.indexOf('name="bio"');
-    const steps = form.lastIndexOf("service_body_");
     expect(form.indexOf('noticeField(errore) === "bio"', bio)).toBeGreaterThan(bio);
-    expect(form.indexOf('noticeField(errore) === "services"', steps)).toBeGreaterThan(steps);
+    expect(form).not.toContain("service_title_");
+    const services = page.slice(page.indexOf(">Servizi<"), page.indexOf(">Ritratto<"));
+    expect(services).toContain('noticeField(errore) === "services"');
   });
 
   it("nel nuovo cliente l'errore sta sotto il nome", () => {

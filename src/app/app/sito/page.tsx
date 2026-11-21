@@ -1,13 +1,16 @@
 import { draftSite } from "@/domain/draft";
 import { editorServices } from "@/domain/public-page";
 import { ActionNotice } from "@/components/action-notice";
-import { fieldInvalid, noticeField, quoteField } from "@/domain/forms";
+import { ServiceSteps } from "@/components/service-steps";
+import { fieldInvalid, noticeField, quoteField, workField } from "@/domain/forms";
+import { publicWorkSrc } from "@/domain/public-page";
 import { getEditorSite } from "@/lib/data";
 import { listEditorTestimonials, listPortfolioEditor } from "@/lib/records";
 import {
   saveSiteAction,
   saveTestimonialAction,
   setWorkVisibilityAction,
+  uploadWorkAction,
   signOutAction,
   uploadPortraitAction,
 } from "@/server/actions";
@@ -35,12 +38,12 @@ export default async function SiteEditorPage({
           <button type="submit">Esci</button>
         </form>
       </p>
-      {noticeField(errore) || quoteField(errore) ? null : <ActionNotice message={errore} />}
+      {noticeField(errore) || quoteField(errore) || workField(errore) ? null : <ActionNotice message={errore} />}
       <section className="owner-section">
       <h2 className="text-2xl">Testi</h2>
       <form
         action={saveSiteAction}
-        className={`grid gap-4 ${noticeField(errore) || quoteField(errore) ? "" : fieldInvalid(errore)}`.trim()}
+        className={`grid gap-4 ${noticeField(errore) || quoteField(errore) || workField(errore) ? "" : fieldInvalid(errore)}`.trim()}
       >
         <input type="hidden" name="return_to" value="/app/sito" />
         <div className={noticeField(errore) === "owner_name" ? "field-invalid" : undefined}>
@@ -96,21 +99,6 @@ export default async function SiteEditorPage({
           </label>
           {noticeField(errore) === "portrait_alt" ? <ActionNotice message={errore} /> : null}
         </div>
-        <div className={noticeField(errore) === "services" ? "field-invalid grid gap-4" : "grid gap-4"}>
-          {services.slice(0, 3).map((service, index) => (
-            <div key={index} className="grid gap-3">
-              <label className="field">
-                <span>Titolo</span>
-                <input name={`service_title_${index}`} defaultValue={service.title} />
-              </label>
-              <label className="field">
-                <span>Testo</span>
-                <input name={`service_body_${index}`} defaultValue={service.body} />
-              </label>
-            </div>
-          ))}
-          {noticeField(errore) === "services" ? <ActionNotice message={errore} /> : null}
-        </div>
         <label className="flex items-center gap-2">
           <input name="published" type="checkbox" defaultChecked={site.published} />
           Visibile sul sito
@@ -122,10 +110,21 @@ export default async function SiteEditorPage({
       </section>
 
       <section className="owner-section is-grove">
+        <h2 className="text-2xl">Servizi</h2>
+        <p>
+          Nella home questi servizi si leggono uno sotto l'altro, nell'ordine di questa lista. Quelli già scritti restano finché non li cambi.
+        </p>
+        <ServiceSteps
+          steps={services}
+          message={noticeField(errore) === "services" ? errore : undefined}
+        />
+      </section>
+
+      <section className="owner-section">
       <h2 className="text-2xl">Ritratto</h2>
       <form
         action={uploadPortraitAction}
-        className={`grid gap-3 ${noticeField(errore) || quoteField(errore) ? "" : fieldInvalid(errore)}`.trim()}
+        className={`grid gap-3 ${noticeField(errore) || quoteField(errore) || workField(errore) ? "" : fieldInvalid(errore)}`.trim()}
       >
         <input type="hidden" name="return_to" value="/app/sito" />
         <label className="field">
@@ -138,13 +137,42 @@ export default async function SiteEditorPage({
       </form>
       </section>
 
-      <section className="owner-section">
+      <section className="owner-section is-works">
         <h2 className="text-2xl">Lavori</h2>
+        <p>Carica una foto di un lavoro finito. Compare sul sito se la lasci visibile.</p>
+        <form action={uploadWorkAction} className="grid gap-3">
+          <input type="hidden" name="return_to" value="/app/sito" />
+          <label className="field">
+            <span>Foto del lavoro</span>
+            <input name="work" type="file" accept="image/*" />
+          </label>
+          <div className={workField(errore) === "work_alt" ? "field-invalid" : undefined}>
+            <label className="field">
+              <span>Cosa si vede</span>
+              <input name="alt" className={workField(errore) === "work_alt" ? "field-invalid" : undefined} />
+            </label>
+            {workField(errore) === "work_alt" ? <ActionNotice message={errore} /> : null}
+          </div>
+          <label className="field">
+            <span>Didascalia</span>
+            <input name="caption" />
+          </label>
+          <label className="flex items-center gap-2">
+            <input name="visible" type="checkbox" defaultChecked />
+            Visibile sul sito
+          </label>
+          <button className="btn" type="submit">
+            Pubblica lavoro
+          </button>
+        </form>
         {works.length === 0 ? <p>Nessun lavoro.</p> : null}
-        {works.map((work) => (
+        {works.map((work) => {
+          const src = publicWorkSrc(work.public_path, process.env.NEXT_PUBLIC_SUPABASE_URL);
+          return (
           <form key={work.id} action={setWorkVisibilityAction} className="grid gap-3">
             <input type="hidden" name="return_to" value="/app/sito" />
             <input type="hidden" name="id" value={work.id} />
+            {src ? <img src={src} alt={work.alt} className="rounded-[12px]" /> : null}
             <p>{work.alt}</p>
             <label className="flex items-center gap-2">
               <input name="visible" type="checkbox" defaultChecked={work.published} />
@@ -154,7 +182,8 @@ export default async function SiteEditorPage({
               Aggiorna
             </button>
           </form>
-        ))}
+          );
+        })}
       </section>
 
       <section className="owner-section is-grove">
@@ -165,7 +194,7 @@ export default async function SiteEditorPage({
           <form
             key={quote.id}
             action={saveTestimonialAction}
-            className={`grid gap-3 ${quoteField(errore) === "quote" && voce === quote.id ? "field-invalid" : noticeField(errore) || quoteField(errore) ? "" : fieldInvalid(errore)}`.trim()}
+            className={`grid gap-3 ${quoteField(errore) === "quote" && voce === quote.id ? "field-invalid" : noticeField(errore) || quoteField(errore) || workField(errore) ? "" : fieldInvalid(errore)}`.trim()}
           >
             <input type="hidden" name="return_to" value="/app/sito" />
             <input type="hidden" name="id" value={quote.id} />
@@ -207,7 +236,7 @@ export default async function SiteEditorPage({
         <h3 className="text-xl">Nuova</h3>
         <form
           action={saveTestimonialAction}
-          className={`grid gap-3 ${quoteField(errore) === "quote" && !voce ? "field-invalid" : noticeField(errore) || quoteField(errore) ? "" : fieldInvalid(errore)}`.trim()}
+          className={`grid gap-3 ${quoteField(errore) === "quote" && !voce ? "field-invalid" : noticeField(errore) || quoteField(errore) || workField(errore) ? "" : fieldInvalid(errore)}`.trim()}
         >
           <input type="hidden" name="return_to" value="/app/sito" />
           <label className="field">

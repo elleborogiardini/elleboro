@@ -177,8 +177,35 @@ button, a { -webkit-tap-highlight-color: transparent; }
   box-shadow: inset 0 1px 0 var(--line);
 }
 
+.owner-section.is-works {
+  margin-block: 1.8rem;
+  padding: 1.55rem 1.2rem 1.75rem;
+  background: var(--surface);
+  box-shadow: inset 0 1px 0 var(--gold), inset 0 0 0 1px var(--line);
+}
+
 .owner-section h2,
 .owner-section h3 { margin: 0; }
+
+.service-step {
+  display: grid;
+  gap: 0.95rem;
+  min-width: 0;
+  margin: 0;
+  padding: 0 0 1.15rem;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.service-step legend {
+  padding: 0;
+  margin-bottom: 0.15rem;
+  color: var(--muted);
+  font-size: 0.85rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
 
 .feed-steps h3 { margin-bottom: 0.35rem; }
 
@@ -195,18 +222,22 @@ button, a { -webkit-tap-highlight-color: transparent; }
   font-weight: 600;
 }
 
-.agenda-month a {
+.agenda-month button {
   display: grid;
   place-items: center;
   min-height: 2.75rem;
+  border: 0;
   border-radius: 999px;
+  padding: 0;
+  background: transparent;
   color: var(--ink);
-  text-decoration: none;
+  cursor: pointer;
 }
 
-.agenda-month a:hover { background: var(--surface); }
+.agenda-month button:hover,
+.agenda-month button:active { background: var(--surface); }
 
-.agenda-month a:focus-visible,
+.agenda-month button:focus-visible,
 .agenda-day:focus-visible {
   outline: 2px solid var(--gold);
   outline-offset: 3px;
@@ -231,9 +262,13 @@ button, a { -webkit-tap-highlight-color: transparent; }
   gap: 0.2rem;
   min-height: 2.75rem;
   padding-top: 0.35rem;
+  border: 0;
   border-radius: 12px;
+  background: transparent;
   color: inherit;
+  font: inherit;
   text-decoration: none;
+  cursor: pointer;
 }
 
 .agenda-day:hover { background: var(--surface); }
@@ -241,7 +276,9 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .agenda-day.is-today { box-shadow: inset 0 0 0 1px var(--forest); }
 
 .agenda-day.is-selected,
-.agenda-day.is-selected:hover {
+.agenda-day.is-selected:hover,
+.agenda-day:active,
+.agenda-day:active:hover {
   background: var(--forest);
   color: var(--on-forest);
 }
@@ -259,7 +296,11 @@ button, a { -webkit-tap-highlight-color: transparent; }
 
 .agenda-mark.is-empty { visibility: hidden; }
 
-.agenda-day.is-selected .agenda-mark { background: var(--on-forest); }
+.agenda-day.is-selected .agenda-mark,
+.agenda-day:active .agenda-mark { background: var(--on-forest); }
+
+.app-shell a:active,
+.app-shell button:active { transform: scale(0.98); }
 
 .agenda-day-title {
   margin: 0.4rem 0 0;
@@ -317,6 +358,13 @@ button, a { -webkit-tap-highlight-color: transparent; }
   background: transparent;
   color: var(--ink);
   box-shadow: inset 0 0 0 1px var(--line);
+}
+
+.btn.service-remove {
+  justify-self: start;
+  background: transparent;
+  color: var(--danger);
+  box-shadow: inset 0 0 0 1px var(--danger);
 }
 
 .btn-paper {
@@ -925,7 +973,7 @@ html:has(.app-shell) body {
   html { scroll-behavior: auto; }
   .hero-botanica { animation: none; }
   .field::after { transition: none; }
-  .btn:active, .hero-phone:active, .phone-dock:active, .choice button:active, .choice label:active { transform: none; }
+  .btn:active, .hero-phone:active, .phone-dock:active, .choice button:active, .choice label:active, .app-shell a:active, .app-shell button:active { transform: none; }
   .action-notice { animation: none; }
 }
 
