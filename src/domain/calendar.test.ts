@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { agendaDay, agendaLocalInput, agendaPlaceLabel, agendaSpan, agendaWhen, buildIcs, compactMonth, movedAppointment, placeForAppointment, romeInstant, romeWindow, upcomingAppointments } from "@/domain/calendar";
+import { agendaClock, agendaDay, agendaFocusDay, agendaLocalInput, agendaMonth, agendaPlaceLabel, agendaSpan, agendaWhen, buildIcs, movedAppointment, placeForAppointment, romeInstant, romeWindow, upcomingAppointments } from "@/domain/calendar";
 
 const base = {
   id: "apt-1",
@@ -244,24 +244,28 @@ describe("feed calendario", () => {
     expect(listed).not.toContain("{item.places?.label}");
   });
 
-  it("il mese in agenda è compatto e non è una griglia di tutti i giorni", () => {
-    expect(compactMonth(["2026-11-02T08:00:00.000Z"], new Date("2026-10-30T12:00:00.000Z"))).toEqual({
-      label: "novembre 2026",
-      days: [2],
-    });
-    expect(
-      compactMonth(
-        ["2026-11-02T08:00:00.000Z", "2026-11-02T15:00:00.000Z", "2026-11-18T08:00:00.000Z"],
-        new Date("2026-10-30T12:00:00.000Z"),
-      ).days,
-    ).toEqual([2, 18]);
-    expect(compactMonth([], new Date("2026-10-30T12:00:00.000Z"))).toEqual({
-      label: "ottobre 2026",
-      days: [],
-    });
+  it("il mese in agenda è una griglia e segna i giorni con appuntamenti", () => {
+    const now = new Date("2026-11-21T12:00:00.000Z");
+    const marks = ["2026-11-02T08:00:00.000Z", "2026-11-02T15:00:00.000Z", "2026-11-18T08:00:00.000Z"];
+    const board = agendaMonth(marks, now);
+    expect(board.label).toBe("novembre 2026");
+    expect(board.weekdays[0]).toBe("lun");
+    expect(board.weeks.every((week) => week.length === 7)).toBe(true);
+    expect(board.weeks[0][0]).toMatchObject({ day: 26, inMonth: false });
+    const cells = board.weeks.flat().filter((cell) => cell.inMonth);
+    expect(cells.find((cell) => cell.day === 2)?.count).toBe(2);
+    expect(cells.find((cell) => cell.day === 18)?.count).toBe(1);
+    expect(cells.find((cell) => cell.day === 3)?.count).toBe(0);
+    expect(cells.find((cell) => cell.day === 21)?.today).toBe(true);
+    expect(agendaFocusDay(board.key, undefined, now, marks)).toBe("2026-11-21");
+    expect(agendaFocusDay(board.key, "2026-11-18", now, marks)).toBe("2026-11-18");
+    expect(agendaFocusDay("2026-12", undefined, now, ["2026-12-04T08:00:00.000Z"])).toBe("2026-12-04");
+    expect(agendaFocusDay("2026-12", undefined, now, [])).toBe("2026-12-01");
+    expect(agendaClock("2026-11-02T08:00:00.000Z")).toBe("09:00");
     const page = readFileSync("src/app/app/agenda/page.tsx", "utf8");
-    expect(page).toContain("compactMonth");
-    expect(page).not.toContain("grid-cols-7");
+    expect(page).toContain("agendaMonth");
+    expect(page).toContain("agenda-week");
+    expect(page).not.toContain("compactMonth");
   });
 
   it("spostare un appuntamento cambia l'orario dello stesso evento", () => {

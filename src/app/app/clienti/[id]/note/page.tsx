@@ -20,13 +20,15 @@ export default async function NotesPage({
 
   return (
     <div className="mx-auto grid max-w-3xl gap-8">
+      <section className="owner-section">
       <h2 className="text-3xl">Note</h2>
       {noteField(errore) ? null : <ActionNotice message={errore} />}
       <p>Scrivi quello che ti serve ricordare. Puoi aggiungere più sezioni.</p>
       {notes.length === 0 ? <p>Nessuna nota. La prima è qui sotto.</p> : null}
-      {notes.map((note) => (
+      </section>
+      {notes.map((note, noteIndex) => (
+        <section key={note.id} className={noteIndex % 2 === 0 ? "owner-section is-grove" : "owner-section"}>
         <form
-          key={note.id}
           action={saveNoteAction}
           className="grid gap-3"
         >
@@ -50,10 +52,7 @@ export default async function NotesPage({
             Aggiorna
           </button>
         </form>
-      ))}
-      {notes.map((note) => (
         <form
-          key={`${note.id}-archive`}
           action={archiveNoteAction}
         >
           <input type="hidden" name="client_id" value={id} />
@@ -63,7 +62,9 @@ export default async function NotesPage({
             Archivia {note.title}
           </button>
         </form>
+        </section>
       ))}
+      <section className={notes.length % 2 === 0 ? "owner-section is-grove" : "owner-section"}>
       <h3 className="text-xl">Nuova sezione</h3>
       <form
         action={saveNoteAction}
@@ -86,6 +87,7 @@ export default async function NotesPage({
           Aggiungi
         </button>
       </form>
+      </section>
     </div>
   );
 }

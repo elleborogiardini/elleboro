@@ -22,5 +22,17 @@ describe("cornice dell'app", () => {
     expect(html).not.toContain("Agenda");
     expect(html).not.toContain("Richiedi un sopralluogo");
     expect(html).not.toContain("Salva il contatto");
+    expect(html).not.toContain("botanica");
+  });
+
+  it("il proprietario vede una sola tavola nel titolo", () => {
+    const html = renderToStaticMarkup(
+      <Shell role="owner">
+        <p>Fascicolo</p>
+      </Shell>,
+    );
+    expect(html).toContain("app-plate");
+    expect(html).toContain("botanica-ramo");
+    expect(html.match(/data-botanica/g)).toHaveLength(1);
   });
 });

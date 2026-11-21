@@ -5,7 +5,8 @@ import { listInquiries } from "@/lib/records";
 export default async function InquiriesPage() {
   const inquiries = await listInquiries();
   return (
-    <div className="mx-auto grid max-w-3xl gap-4">
+    <div className="mx-auto grid max-w-3xl gap-8">
+      <section className="owner-section">
       {inquiries.length === 0 ? (
         <p>{emptyInquiries()}</p>
       ) : (
@@ -26,6 +27,7 @@ export default async function InquiriesPage() {
           ))}
         </ul>
       )}
+      </section>
     </div>
   );
 }

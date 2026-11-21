@@ -131,6 +131,130 @@ export type CalendarEvent = {
   cancelled?: boolean;
 };
 
+export function agendaClock(value: string | Date): string {
+  return new Intl.DateTimeFormat("it-IT", {
+    timeZone: rome,
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(asDate(value));
+}
+
+export function agendaDayKey(value: string | Date): string {
+  const day = agendaDay(value);
+  const pad = (part: number) => String(part).padStart(2, "0");
+  return `${day.year}-${pad(day.month)}-${pad(day.day)}`;
+}
+
+export function agendaDayLabel(key: string): string {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(key);
+  if (!match) return key;
+  const stamp = new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3]), 12));
+  return stamp
+    .toLocaleDateString("it-IT", {
+      timeZone: rome,
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+    })
+    .replace(/\s+/g, " ");
+}
+
+export type AgendaMonthCell = {
+  key: string;
+  day: number;
+  inMonth: boolean;
+  today: boolean;
+  count: number;
+};
+
+export type AgendaMonth = {
+  label: string;
+  key: string;
+  prev: string;
+  next: string;
+  weekdays: string[];
+  weeks: AgendaMonthCell[][];
+};
+
+function monthStamp(year: number, month: number): string {
+  const pad = (part: number) => String(part).padStart(2, "0");
+  return `${year}-${pad(month)}`;
+}
+
+function shiftMonth(year: number, month: number, delta: number): { year: number; month: number } {
+  const moved = new Date(Date.UTC(year, month - 1 + delta, 1));
+  return { year: moved.getUTCFullYear(), month: moved.getUTCMonth() + 1 };
+}
+
+export function agendaMonth(marks: string[], now: Date, focusKey?: string): AgendaMonth {
+  const today = agendaDay(now);
+  const parsed = /^(\d{4})-(\d{2})$/.exec(focusKey ?? "");
+  let year = today.year;
+  let month = today.month;
+  if (parsed) {
+    const nextMonth = Number(parsed[2]);
+    if (nextMonth >= 1 && nextMonth <= 12) {
+      year = Number(parsed[1]);
+      month = nextMonth;
+    }
+  }
+  const counts = new Map<string, number>();
+  for (const mark of marks) {
+    if (Number.isNaN(new Date(mark).getTime())) continue;
+    const key = agendaDayKey(mark);
+    counts.set(key, (counts.get(key) ?? 0) + 1);
+  }
+  const pad = (part: number) => String(part).padStart(2, "0");
+  const firstWeekday = new Date(Date.UTC(year, month - 1, 1)).getUTCDay();
+  const leading = (firstWeekday + 6) % 7;
+  const daysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate();
+  const previous = shiftMonth(year, month, -1);
+  const following = shiftMonth(year, month, 1);
+  const daysInPrevious = new Date(Date.UTC(previous.year, previous.month, 0)).getUTCDate();
+  const cells: AgendaMonthCell[] = [];
+  for (let offset = leading; offset > 0; offset -= 1) {
+    const day = daysInPrevious - offset + 1;
+    const key = `${previous.year}-${pad(previous.month)}-${pad(day)}`;
+    cells.push({ key, day, inMonth: false, today: false, count: counts.get(key) ?? 0 });
+  }
+  for (let day = 1; day <= daysInMonth; day += 1) {
+    const key = `${year}-${pad(month)}-${pad(day)}`;
+    cells.push({
+      key,
+      day,
+      inMonth: true,
+      today: today.year === year && today.month === month && today.day === day,
+      count: counts.get(key) ?? 0,
+    });
+  }
+  let spill = 1;
+  while (cells.length % 7 !== 0) {
+    const key = `${following.year}-${pad(following.month)}-${pad(spill)}`;
+    cells.push({ key, day: spill, inMonth: false, today: false, count: counts.get(key) ?? 0 });
+    spill += 1;
+  }
+  const weeks: AgendaMonthCell[][] = [];
+  for (let index = 0; index < cells.length; index += 7) weeks.push(cells.slice(index, index + 7));
+  const label = new Date(Date.UTC(year, month - 1, 15, 12))
+    .toLocaleDateString("it-IT", { timeZone: rome, month: "long", year: "numeric" })
+    .replace(/\s+/g, " ");
+  return {
+    label,
+    key: monthStamp(year, month),
+    prev: monthStamp(previous.year, previous.month),
+    next: monthStamp(following.year, following.month),
+    weekdays: ["lun", "mar", "mer", "gio", "ven", "sab", "dom"],
+    weeks,
+  };
+}
+
+export function agendaFocusDay(monthKey: string, requested: string | undefined, now: Date, marks: string[]): string {
+  const board = agendaMonth(marks, now, monthKey);
+  const days = board.weeks.flat().filter((cell) => cell.inMonth);
+  if (requested && days.some((cell) => cell.key === requested)) return requested;
+  return days.find((cell) => cell.today)?.key ?? days.find((cell) => cell.count > 0)?.key ?? days[0].key;
+}
+
 export function compactMonth(marks: string[], now: Date): { label: string; days: number[] } {
   const dated = marks
     .map((value) => ({ value, day: agendaDay(value) }))

@@ -36,6 +36,8 @@ export default async function SiteEditorPage({
         </form>
       </p>
       {noticeField(errore) || quoteField(errore) ? null : <ActionNotice message={errore} />}
+      <section className="owner-section">
+      <h2 className="text-2xl">Testi</h2>
       <form
         action={saveSiteAction}
         className={`grid gap-4 ${noticeField(errore) || quoteField(errore) ? "" : fieldInvalid(errore)}`.trim()}
@@ -117,7 +119,10 @@ export default async function SiteEditorPage({
           Salva testi
         </button>
       </form>
+      </section>
 
+      <section className="owner-section is-grove">
+      <h2 className="text-2xl">Ritratto</h2>
       <form
         action={uploadPortraitAction}
         className={`grid gap-3 ${noticeField(errore) || quoteField(errore) ? "" : fieldInvalid(errore)}`.trim()}
@@ -131,8 +136,9 @@ export default async function SiteEditorPage({
           Carica ritratto
         </button>
       </form>
+      </section>
 
-      <section className="grid gap-6">
+      <section className="owner-section">
         <h2 className="text-2xl">Lavori</h2>
         {works.length === 0 ? <p>Nessun lavoro.</p> : null}
         {works.map((work) => (
@@ -151,7 +157,7 @@ export default async function SiteEditorPage({
         ))}
       </section>
 
-      <section className="grid gap-6">
+      <section className="owner-section is-grove">
         <h2 className="text-2xl">Testimonianze</h2>
         <p>Pubblicale solo se la persona è d&apos;accordo. Non sono collegate al fascicolo.</p>
         {quotes.length === 0 ? <p>Nessuna testimonianza.</p> : null}

@@ -1,5 +1,6 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { ownerDossierLinks, safeReturn, shellChrome, tabCurrent, tabsFor } from "@/domain/shell";
+import { ownerDossierLinks, ownerPlate, safeReturn, shellChrome, tabCurrent, tabsFor } from "@/domain/shell";
 
 describe("app installata", () => {
   it("il tecnico non vede l'agenda", () => {
@@ -49,6 +50,39 @@ describe("app installata", () => {
     expect(safeReturn("//esempio.test")).toBeNull();
     expect(safeReturn("/app/../.env")).toBeNull();
     expect(safeReturn("/richiesta")).toBeNull();
+  });
+
+  it("il proprietario ha una tavola per schermata e le sezioni cambiano fondo", () => {
+    expect(ownerPlate("/app")).toBe("fiore");
+    expect(ownerPlate("/app/clienti/abc")).toBe("fiore");
+    expect(ownerPlate("/app/agenda")).toBe("ramo");
+    expect(ownerPlate("/app/richieste")).toBe("bordura");
+    expect(ownerPlate("/app/richieste/abc")).toBe("bordura");
+    expect(ownerPlate("/app/sito")).toBe("mazzo");
+    expect(ownerPlate("/app/clienti/abc/note")).toBe("ramo");
+    expect(ownerPlate("/app/clienti/abc/preferenze")).toBe("fiore");
+    expect(ownerPlate("/app/accesso")).toBe("mazzo");
+
+    const paired = [
+      "src/app/app/page.tsx",
+      "src/app/app/agenda/page.tsx",
+      "src/app/app/clienti/[id]/page.tsx",
+      "src/app/app/clienti/[id]/note/page.tsx",
+      "src/app/app/clienti/[id]/preferenze/page.tsx",
+      "src/app/app/richieste/[id]/page.tsx",
+      "src/app/app/sito/page.tsx",
+      "src/app/app/accesso/page.tsx",
+    ];
+    for (const file of paired) {
+      const source = readFileSync(file, "utf8");
+      expect(source, file).toContain("owner-section");
+      expect(source, file).toContain("is-grove");
+    }
+    expect(readFileSync("src/app/app/richieste/page.tsx", "utf8")).toContain("owner-section");
+    const css = readFileSync("src/app/globals.css", "utf8");
+    expect(css).toMatch(/\.owner-section \{[^}]*background: var\(--surface\);/);
+    expect(css).toMatch(/\.owner-section\.is-grove \{[^}]*background: var\(--grove\);/);
+    expect(css).toMatch(/\.app-plate \{[^}]*color: var\(--herb\);/);
   });
 
   it("nel fascicolo resta segnata la voce Clienti", () => {

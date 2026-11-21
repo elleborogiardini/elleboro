@@ -13,6 +13,7 @@ Token in `src/app/globals.css`, in OKLCH.
 - `--paper` fondo
 - `--gold` filo, non bottoni
 - `--danger` errori
+- `--grove` fondo alternato delle sezioni nel gestionale
 
 Tema chiaro progettato per primo. La coppia scura usa gli stessi nomi e segue il sistema del telefono.
 
@@ -30,7 +31,7 @@ Apertura del sito: salita breve, opacità piena da subito. Campi: linea verde ch
 
 ## Tavole botaniche
 
-Incisioni di elleboro in `public/botanica`, solo canale alfa. Si usano con `Botanica` da `src/components/botanica.tsx`, colorate dai token: oro sul verde dell'hero, `--herb` sulla carta. Una tavola per schermata, mai sotto il testo di lettura, sempre decorative. Sul sito pubblico, non nel gestionale.
+Incisioni di elleboro in `public/botanica`, solo canale alfa. Si usano con `Botanica` da `src/components/botanica.tsx`, colorate dai token: oro sul verde dell'hero, `--herb` sulla carta e nel titolo del gestionale. Una tavola per schermata, mai sotto il testo di lettura, sempre decorative. Nel gestionale la vede solo il proprietario, piccola, accanto al titolo. Le sezioni del gestionale alternano `--surface` e `--grove`.
 
 ## Logo
 

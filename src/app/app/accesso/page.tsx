@@ -14,8 +14,11 @@ export default async function AccessPage({
   if (role !== "owner") notFound();
   const email = await getRecoveryEmail();
   return (
-    <div className="mx-auto grid max-w-md gap-4">
+    <div className="mx-auto grid max-w-md gap-8">
+      <section className="owner-section">
       <p>Qui arriva il link se dimentichi la password. Il tecnico non la vede.</p>
+      </section>
+      <section className="owner-section is-grove">
       <form action={saveRecoveryEmailAction} className={`grid gap-4 ${fieldInvalid(errore)}`.trim()}>
         <label className="field">
           <span>Mail personale</span>
@@ -27,6 +30,7 @@ export default async function AccessPage({
           Salva
         </button>
       </form>
+      </section>
     </div>
   );
 }

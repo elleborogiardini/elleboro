@@ -13,6 +13,15 @@ const tabs: AppTab[] = [
 
 const appPath = /^\/app(?:\/[A-Za-z0-9-]+){0,3}$/;
 
+export type OwnerPlate = "ramo" | "mazzo" | "bordura" | "fiore";
+
+export function ownerPlate(path: string): OwnerPlate {
+  if (path.startsWith("/app/agenda") || path.includes("/note")) return "ramo";
+  if (path.startsWith("/app/richieste")) return "bordura";
+  if (path.startsWith("/app/sito") || path.startsWith("/app/accesso")) return "mazzo";
+  return "fiore";
+}
+
 export function tabCurrent(href: string, path: string): boolean {
   if (href === "/app") return path === "/app" || path.startsWith("/app/clienti");
   return path === href || path.startsWith(`${href}/`);

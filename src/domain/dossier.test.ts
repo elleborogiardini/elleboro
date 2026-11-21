@@ -131,7 +131,7 @@ describe("fascicolo cliente", () => {
 
   it("la ricerca si invia con un pulsante", () => {
     const page = readFileSync("src/app/app/page.tsx", "utf8");
-    const form = page.slice(page.indexOf("<form>"), page.indexOf("</form>"));
+    const form = page.slice(page.indexOf("client-search"), page.indexOf("</form>"));
     expect(form).toContain('name="q"');
     expect(form).toContain('type="submit"');
     expect(form).toContain("Cerca");

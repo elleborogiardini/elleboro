@@ -13,8 +13,9 @@ export default async function ClientsPage({
   const { q = "", errore } = await searchParams;
   const [clients, role] = await Promise.all([listClients(q), getRole()]);
   return (
-    <div className="mx-auto grid max-w-3xl gap-6">
+    <div className="mx-auto grid max-w-3xl gap-8">
       {role === "owner" ? <Link href="/app/accesso">Mail per il recupero</Link> : null}
+      <section className="owner-section">
       <form className="client-search">
         <label className="field">
           <span>Cerca per nome, telefono o località</span>
@@ -48,6 +49,8 @@ export default async function ClientsPage({
           })}
         </ul>
       )}
+      </section>
+      <section className="owner-section is-grove">
       <h2 className="text-2xl">Nuovo cliente</h2>
       <form
         action={createClientAction}
@@ -91,6 +94,7 @@ export default async function ClientsPage({
           Salva
         </button>
       </form>
+      </section>
     </div>
   );
 }

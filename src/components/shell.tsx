@@ -10,7 +10,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 
-import { shellChrome, tabCurrent, tabsFor } from "@/domain/shell";
+import { Botanica } from "@/components/botanica";
+import { ownerPlate, shellChrome, tabCurrent, tabsFor } from "@/domain/shell";
 
 const icons = {
   Clienti: Users,
@@ -50,6 +51,7 @@ export function Shell({
           </Link>
         ) : null}
         <h1>{chrome.title}</h1>
+        {role === "owner" ? <Botanica plant={ownerPlate(path)} className="app-plate" /> : null}
       </header>
       <main className="app-main">
         {online ? null : (

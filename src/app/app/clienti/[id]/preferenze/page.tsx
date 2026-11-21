@@ -25,7 +25,8 @@ export default async function PreferencesPage({
   ]);
 
   return (
-    <div className="mx-auto grid max-w-3xl gap-6">
+    <div className="mx-auto grid max-w-3xl gap-8">
+      <section className="owner-section">
       <h2 className="text-3xl">Preferenze e specifiche</h2>
       {preferenceField(errore) ? null : <ActionNotice message={errore} />}
       <p>Solo tu le vedi. Servono a ricordare fiori, colori e dettagli del luogo.</p>
@@ -47,6 +48,8 @@ export default async function PreferencesPage({
           </li>
         ))}
       </ul>
+      </section>
+      <section className="owner-section is-grove">
       <form
         action={savePrivateAction}
         className={`grid gap-4 ${preferenceField(errore) ? "" : fieldInvalid(errore)}`.trim()}
@@ -84,6 +87,7 @@ export default async function PreferencesPage({
           Salva
         </button>
       </form>
+      </section>
     </div>
   );
 }

@@ -17,8 +17,9 @@ export default async function InquiryPage({
   if (!inquiry) notFound();
   const choices = inquiryStatusChoices(inquiry.status);
   return (
-    <article className="mx-auto grid max-w-3xl gap-4">
+    <article className="mx-auto grid max-w-3xl gap-8">
       <ActionNotice message={errore} />
+      <section className="owner-section">
       <h2 className="text-3xl">{inquiry.name}</h2>
       <p>{inquiry.contact}</p>
       <p>
@@ -29,6 +30,8 @@ export default async function InquiryPage({
         })}
       </p>
       <p className="text-lg">{inquiry.message}</p>
+      </section>
+      <section className="owner-section is-grove">
       <form action={setInquiryStatusAction} className="choice">
         <input type="hidden" name="id" value={inquiry.id} />
         <input type="hidden" name="return_to" value={`/app/richieste/${inquiry.id}`} />
@@ -44,6 +47,7 @@ export default async function InquiryPage({
           </button>
         ))}
       </form>
+      </section>
     </article>
   );
 }

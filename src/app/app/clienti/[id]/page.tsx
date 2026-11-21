@@ -39,7 +39,7 @@ export default async function ClientPage({
   return (
     <div className="mx-auto grid max-w-3xl gap-10">
       {dossierField(errore) || clientField(errore) ? null : <ActionNotice message={errore} />}
-      <header>
+      <header className="owner-section">
         <h2 className="text-3xl">{client.full_name}</h2>
         <p className="text-[var(--muted)]">
           {[client.locality, client.phone, client.address].filter(Boolean).join(", ")}
@@ -60,7 +60,7 @@ export default async function ClientPage({
         ) : null}
       </header>
 
-      <section className="grid gap-3">
+      <section className="owner-section is-grove">
         <h2 className="text-2xl">Anagrafica</h2>
         <form action={updateClientAction} className="grid gap-3">
           <input type="hidden" name="id" value={id} />
@@ -107,7 +107,7 @@ export default async function ClientPage({
         </form>
       </section>
 
-      <section className={`grid gap-3 ${dossierField(errore) || clientField(errore) ? "" : fieldInvalid(errore)}`.trim()}>
+      <section className={`owner-section ${dossierField(errore) || clientField(errore) ? "" : fieldInvalid(errore)}`.trim()}>
         <h2 className="text-2xl">Luoghi</h2>
         {places.length === 0 ? <p>Nessun luogo ancora.</p> : null}
         <ul>
@@ -147,7 +147,7 @@ export default async function ClientPage({
         </form>
       </section>
 
-      <section className={`grid gap-3 ${dossierField(errore) || clientField(errore) ? "" : fieldInvalid(errore)}`.trim()}>
+      <section className={`owner-section is-grove ${dossierField(errore) || clientField(errore) ? "" : fieldInvalid(errore)}`.trim()}>
         <h2 className="text-2xl">Foto</h2>
         {photos.length === 0 ? <p>Nessuna foto. Dal telefono puoi scattarne una.</p> : null}
         {photosByPlace(places, photos).map((group) => (
@@ -265,7 +265,7 @@ export default async function ClientPage({
         </form>
       </section>
 
-      <section className={`grid gap-3 ${dossierField(errore) || clientField(errore) ? "" : fieldInvalid(errore)}`.trim()}>
+      <section className={`owner-section ${dossierField(errore) || clientField(errore) ? "" : fieldInvalid(errore)}`.trim()}>
         <h2 className="text-2xl">Interventi</h2>
         {interventions.length === 0 ? <p>Nessun intervento registrato.</p> : null}
         <ul className={`grid gap-3 ${dossierField(errore) || clientField(errore) ? "" : fieldInvalid(errore)}`.trim()}>

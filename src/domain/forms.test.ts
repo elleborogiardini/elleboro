@@ -327,7 +327,7 @@ describe("biglietto da visita", () => {
     const listed = page.slice(page.indexOf("appointments.map"), page.indexOf("Nuovo appuntamento"));
     expect(listed).not.toContain("fieldInvalid(errore)");
     expect(listed).toContain('agendaField(errore) === "move"');
-    const fresh = page.slice(page.indexOf("Nuovo appuntamento"), page.indexOf("Calendario esterno"));
+    const fresh = page.slice(page.indexOf("Nuovo appuntamento"), page.indexOf("Anche sul tuo calendario"));
     const title = fresh.indexOf('name="title"');
     expect(title).toBeGreaterThan(-1);
     expect(fresh.indexOf('agendaField(errore) === "title"', title)).toBeGreaterThan(title);
